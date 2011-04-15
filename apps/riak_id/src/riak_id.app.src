@@ -1,0 +1,13 @@
+{application, riak_id,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  riak_core
+                 ]},
+  {mod, { riak_id_app, []}},
+  {env, []}
+ ]}.
