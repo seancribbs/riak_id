@@ -2,7 +2,7 @@
 ** Overview
    =riak_id= is a very simple application that serves both to
    duplicate functionality from Twitter's [[https://github.com/twitter/snowflake]["Snowflake"]] and to teach,
-   via a very simple example, how to build a [[https://github.com/basho/riak_core][=riak_core=]] application.
+   via a very simple example, how to build a [[https://github.com/basho/riak_core][riak_core]] application.
 *** Design
     The core functionality of =riak_id= is to provide k-sorted unique
     identifiers.  The structure of the identifiers is very similar to
@@ -15,7 +15,8 @@
     |   41 | Unix timestamp, down to the millisecond       |
     |   10 | Top 10 bits of partition number (see Caveats) |
     |   12 | Per-partition strictly increasing counter     |
-
+    |------+-----------------------------------------------|
+    
 *** Caveats
     - Decent NTP synchronization between machines is needed for
       =riak_id= to work as expected.
@@ -35,12 +36,18 @@
 
 ** Quick Start
 
-   =riak_id= requires Erlang/OTP, [[https://github.com/basho/rebar][=rebar=]] and a sane GNU build system.
+   =riak_id= requires Erlang/OTP, [[https://github.com/basho/rebar][rebar]] and a sane GNU build system.
 
-   1) Clone the repository.
+   1) Clone the repository, copy the =rebar= script into the repository.
    2) Run =make rel= from the command line.
    3) =rel/riak_id/bin/riak_id console=
    4) =riak_id:next_id().= from the console to generate IDs.
+
+** Acknowledgments
+   Thanks to Jesse Newland, Andy Gross, Ryan Zezeski for their work on
+   the rebar template for riak_core apps, without which I would be
+   lost. Special thanks to Andy for pointing out some egregious errors
+   in an early version of the vnode code.
 
 ** License
    Copyright 2011, Sean Cribbs. Licensed under Apache License 2.0.
