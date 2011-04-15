@@ -31,7 +31,6 @@
     - It will run out of ID space within the century. Snowflake solves
       this using the "Twepoch". I didn't bother with that, but it
       would be a simple feature to add.
-    - =riak_id= can only be used from the Erlang console. (TODO)
     - I wrote =riak_id= to learn, I hope it will be useful to others.
 
 ** Quick Start
