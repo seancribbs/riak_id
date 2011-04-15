@@ -1,0 +1,46 @@
+* riak_id
+** Overview
+   =riak_id= is a very simple application that serves both to
+   duplicate functionality from Twitter's [[https://github.com/twitter/snowflake]["Snowflake"]] and to teach,
+   via a very simple example, how to build a [[https://github.com/basho/riak_core][=riak_core=]] application.
+*** Design
+    The core functionality of =riak_id= is to provide k-sorted unique
+    identifiers.  The structure of the identifiers is very similar to
+    Snowflake. They are 64-bit integers with the following layout
+    (from highest to lowest):
+
+    | Bits | Description                                   |
+    |------+-----------------------------------------------|
+    |    1 | Signedness flag, always 0                     |
+    |   41 | Unix timestamp, down to the millisecond       |
+    |   10 | Top 10 bits of partition number (see Caveats) |
+    |   12 | Per-partition strictly increasing counter     |
+
+*** Caveats
+    - Decent NTP synchronization between machines is needed for
+      =riak_id= to work as expected.
+    - Request failures (e.g. from partition, timeout) should simply be
+      retried. You will eventually get an ID.
+    - Because only 10 bits are reserved for the partition number,
+      there is a practical ring-size limit of 1024.  This should not
+      be a problem because the work is mostly CPU-bound.
+    - So that we can give reasonable guarantees of uniqueness, some
+      requests may have a minimum latency of 1ms (to allow the
+      timestamp to increment).
+    - It will run out of ID space within the century. Snowflake solves
+      this using the "Twepoch". I didn't bother with that, but it
+      would be a simple feature to add.
+    - =riak_id= can only be used from the Erlang console. (TODO)
+    - I wrote =riak_id= to learn, I hope it will be useful to others.
+
+** Quick Start
+
+   =riak_id= requires Erlang/OTP, [[https://github.com/basho/rebar][=rebar=]] and a sane GNU build system.
+
+   1) Clone the repository.
+   2) Run =make rel= from the command line.
+   3) =rel/riak_id/bin/riak_id console=
+   4) =riak_id:next_id().= from the console to generate IDs.
+
+** License
+   Copyright 2011, Sean Cribbs. Licensed under Apache License 2.0.
