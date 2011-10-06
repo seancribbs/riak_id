@@ -6,4 +6,3 @@ apps/riak_id/ebin
 dev/*
 doc/*
 rel/riak_id
-
