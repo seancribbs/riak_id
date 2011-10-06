@@ -17,7 +17,7 @@ service_available(RD, {fail, backwards_clock}=Ctx) ->
                                                      RD)),
      Ctx};
 service_available(RD, Ctx) when is_integer(Ctx) ->
-    {true, RD, Ctx}. 
+    {true, RD, Ctx}.
 
 content_types_provided(RD, Ctx) ->
     {[{"text/plain", to_text}], RD, Ctx}.

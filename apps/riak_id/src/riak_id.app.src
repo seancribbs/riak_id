@@ -1,3 +1,4 @@
+%% -*- erlang -*-
 {application, riak_id,
  [
   {description, ""},

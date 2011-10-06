@@ -1,5 +1,4 @@
 -module(riak_id_app).
-
 -behaviour(application).
 
 %% Application callbacks
@@ -8,7 +7,6 @@
 %% ===================================================================
 %% Application callbacks
 %% ===================================================================
-
 start(_StartType, _StartArgs) ->
     case riak_id_sup:start_link() of
         {ok, Pid} ->
