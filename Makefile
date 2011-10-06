@@ -1,23 +1,26 @@
+REBAR = $(shell pwd)/rebar
+
+.PHONY: deps rel stagedevrel
 
 all: deps compile
 
 compile:
-	./rebar compile
+	$(REBAR) compile
 
 deps:
-	./rebar get-deps
+	$(REBAR) get-deps
 
 clean:
-	./rebar clean
+	$(REBAR) clean
 
 distclean: clean devclean relclean
-	./rebar delete-deps
+	$(REBAR) delete-deps
 
 test:
-	./rebar skip_deps=true eunit
+	$(REBAR) skip_deps=true eunit
 
 rel: all
-	./rebar generate
+	$(REBAR) generate
 
 relclean:
 	rm -rf rel/riak_id
@@ -28,7 +31,7 @@ devrel: dev1 dev2 dev3
 ### Docs
 ###
 docs:
-	./rebar skip_deps=true doc
+	$(REBAR) skip_deps=true doc
 
 ##
 ## Developer targets
@@ -50,7 +53,7 @@ devclean:
 
 dev1 dev2 dev3: all
 	mkdir -p dev
-	(cd rel && ../rebar generate target_dir=../dev/$@ overlay_vars=vars/$@.config)
+	(cd rel && $(REBAR) generate target_dir=../dev/$@ overlay_vars=vars/$@.config)
 
 
 ##
@@ -78,11 +81,9 @@ dialyzer: deps compile
 
 
 cleanplt:
-	@echo 
+	@echo
 	@echo "Are you sure?  It takes about 1/2 hour to re-build."
 	@echo Deleting $(COMBO_PLT) in 5 seconds.
-	@echo 
+	@echo
 	sleep 5
 	rm $(COMBO_PLT)
-
-.PHONY: deps rel stagedevrel
