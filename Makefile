@@ -1,26 +1,30 @@
-REBAR = $(shell pwd)/rebar
-
+#
+# This Makefile uses rebar and expects to find it in your PATH.
+# You can get it from https://github.com/basho/rebar .
+# Follow the instructions there to build it, and then put it
+# somewhere on your PATH.
+#
 .PHONY: deps rel stagedevrel
 
 all: deps compile
 
 compile:
-	$(REBAR) compile
+	rebar compile
 
 deps:
-	$(REBAR) get-deps
+	rebar get-deps
 
 clean:
-	$(REBAR) clean
+	rebar clean
 
 distclean: clean devclean relclean
-	$(REBAR) delete-deps
+	rebar delete-deps
 
 test:
-	$(REBAR) skip_deps=true eunit
+	rebar skip_deps=true eunit
 
 rel: all
-	$(REBAR) generate
+	rebar generate
 
 relclean:
 	rm -rf rel/riak_id
@@ -31,7 +35,7 @@ devrel: dev1 dev2 dev3
 ### Docs
 ###
 docs:
-	$(REBAR) skip_deps=true doc
+	rebar skip_deps=true doc
 
 ##
 ## Developer targets
@@ -53,7 +57,7 @@ devclean:
 
 dev1 dev2 dev3: all
 	mkdir -p dev
-	(cd rel && $(REBAR) generate target_dir=../dev/$@ overlay_vars=vars/$@.config)
+	(cd rel && rebar generate target_dir=../dev/$@ overlay_vars=vars/$@.config)
 
 
 ##
