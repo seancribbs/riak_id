@@ -1,8 +1,10 @@
 *.beam
 .eunit
-deps/*
-apps/riak_id/ebin
+deps
+ebin
 *~
 dev/*
 doc/*
 rel/riak_id
+.edts
+.rebar
