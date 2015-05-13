@@ -1,7 +1,9 @@
 -module(riak_id_vnode).
+
 -behaviour(riak_core_vnode).
--include_lib("riak_core/include/riak_core_vnode.hrl").
+
 -include("riak_id.hrl").
+-include_lib("riak_core/include/riak_core_vnode.hrl").
 
 -export([start_vnode/1,
          init/1,
@@ -18,39 +20,47 @@
          handle_coverage/4,
          handle_exit/3]).
 
-%% API
+-ignore_xref([start_vnode/1]).
+
+-record(state, {partition      :: partition(),
+                machine_id     :: binary(),
+                sequence = 0   :: non_neg_integer(),
+                last_timestamp :: tuple() }).
+
+%%====================================================================
+%% riak_core callbacks
+%%====================================================================
+
 start_vnode(I) ->
     riak_core_vnode_master:get_vnode_pid(I, ?MODULE).
 
-%% vnode callbacks
-init([Index]) ->
+init([Partition]) ->
     TS = erlang:now(),
     %% This could get ugly if you expect them to be unique across data
     %% centers, or if you have more than 1024 partitions
-    <<MachineID:10/bits, _Rest/bits>> = <<Index:160/integer>>,
-    {ok, #state{idx = Index, machine_id = MachineID, last_timestamp = TS}}.
+    <<MachineID:10/bits, _Rest/bits>> = <<Partition:160/integer>>,
+    {ok, #state{partition = Partition, machine_id = MachineID, last_timestamp = TS}}.
 
-handle_command(next_id, Sender, #state{last_timestamp = TS, sequence = Seq, machine_id = Machine} = State) ->
+handle_command(next_id, Sender,
+               #state{last_timestamp = TS, sequence = Seq, machine_id = Machine} = State) ->
     case get_next_seq(TS, Seq) of
         backwards_clock ->
             {reply, {fail, backwards_clock}, State};
         exhausted ->
             %% Retry after a millisecond
-            erlang:sleep(1),
+            timer:sleep(1),
             handle_command(next_id, Sender, State);
         {ok, Time, NewSeq} ->
-            {reply, construct_id(Time, Machine, NewSeq), State#state{last_timestamp = Time, sequence = NewSeq}}
+            {reply, construct_id(Time, Machine, NewSeq),
+             State#state{last_timestamp = Time, sequence = NewSeq}}
     end;
 handle_command(Message, _Sender, State) ->
     ?PRINT({unhandled_command, Message}),
     {noreply, State}.
 
-handle_exit(_Pid, Reason, State) ->
-    {stop, Reason, State}.
-
 handle_handoff_command(_Message, _Sender, State) ->
     %% Delay a little to naively avoid ID collisions
-    erlang:sleep(1),
+    timer:sleep(1),
     {forward, State}.
 
 handoff_starting(_TargetNode, State) ->
@@ -77,15 +87,21 @@ delete(State) ->
 handle_coverage(_Req, _KeySpaces, _Sender, State) ->
     {stop, not_implemented, State}.
 
+handle_exit(_Pid, _Reason, State) ->
+    {noreply, State}.
+
 terminate(_Reason, _State) ->
     ok.
 
-%% Private functions
+%%====================================================================
+%% Internal functions
+%%====================================================================
+
 get_next_seq({Megas, Secs, Micros} = Time, Seq) ->
     Now = erlang:now(),
     {NowMegas, NowSecs, NowMicros} = Now,
     if
-        % Time is essentially equal at the millisecond
+        %% Time is essentially equal at the millisecond
         Megas =:= NowMegas,
         Secs =:= NowSecs,
         NowMicros div 1000 =:= Micros div 1000 ->
@@ -93,10 +109,10 @@ get_next_seq({Megas, Secs, Micros} = Time, Seq) ->
                 0 -> exhausted;
                 NewSeq -> {ok, Now, NewSeq}
             end;
-        % Woops, clock was moved backwards by NTP
+        %% Woops, clock was moved backwards by NTP
         Now < Time ->
             backwards_clock;
-        % New millisecond
+        %% New millisecond
         true ->
             {ok, Now, 0}
     end.
